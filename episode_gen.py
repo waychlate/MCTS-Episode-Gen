@@ -51,26 +51,32 @@ agent_config = {
 
 agent = MCTSAgent(env, agent_config)
 
-# print(env.unwrapped.config)  # Confirm weights are set
+# print(env.unwrapped.config)  # Confirm config is set
 
 BATCH_SIZE = 100
 
 start_index = get_next_episode_index()
 end_index = start_index + BATCH_SIZE
 
-for current_ep in range(start_index, end_index):
+current_ep = start_index
+seed = current_ep * 73
+
+while (current_ep < end_index):
     print(f"Generating Episode {current_ep:04d}")
-    seed = current_ep
 
     obs, info = env.reset(seed=seed)
+
+    # Increment the seed so that if an attempt fails it won't try on the same seed
+    seed += 1
+
     episode_data = []
     episode_images = []
+    done = truncated = False
+    was_corrupted = False # Track if attempt failed (ex. car crashed)
 
-    # Episode Loop
     episode = current_ep
     step = 0
 
-    done = truncated = False
     while not (done or truncated):
         # Agent planning
         action = agent.act(obs)
@@ -80,26 +86,20 @@ for current_ep in range(start_index, end_index):
             "seed": seed,
             "episode": episode,
             "step": step,
-
             "x": ego.position[0],
             "y": ego.position[1],
             "vx": ego.velocity[0],
             "vy": ego.velocity[1],
-
             "cos_h": ego.direction[0],
             "sin_h": ego.direction[1],
             "cos_d": ego.destination_direction[0],
             "sin_d": ego.destination_direction[1],
-
             "long_off": ego.lane_offset[0],
             "lat_off": ego.lane_offset[1],
             "ang_off": ego.lane_offset[2],
-
             "lane_id": ego.lane_index[2],
             "action": action,
             "target_speed": ego.target_speed,
-
-            "crashed": int(ego.crashed)
         }
 
         episode_images.append(env.render())
@@ -107,17 +107,27 @@ for current_ep in range(start_index, end_index):
         obs, reward, done, truncated, info = env.step(action)
         step += 1
 
-        # For observing
+        if ego.crashed:
+            was_corrupted = True
+            break
+
+        # To observe each step uncomment line below
         # print(f"action={action}, reward={reward}, lane={ego.lane_index}, speed={ego.speed:.1f}, crashed={ego.crashed}")
 
         step_entry["reward"] = reward
         step_entry["done"] = done
         episode_data.append(step_entry)
+
+    if was_corrupted:
+        print(f"There was a crash on episode {current_ep:04d}, redoing the episode with a different seed...")
+        continue
     
     df = pd.DataFrame(episode_data)
     df.to_csv(f"output/episode_{current_ep:04d}_data.csv")
 
     video_tensor = np.array(episode_images, dtype=np.uint8)
     np.savez_compressed(f"output/episode_{current_ep:04d}_visuals.npz", visuals=video_tensor)
+
+    current_ep += 1
 
 env.close()
