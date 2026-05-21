@@ -46,7 +46,7 @@ env = gym.make(
         "vehicles_count": 50,
         "lanes_count": 4,
 
-        "duration": 2,
+        "duration": 20,
         "simulation_frequency": 15,
         "policy_frequency": 5,
 
@@ -56,7 +56,7 @@ env = gym.make(
 )
 
 agent_config = {
-    "budget": 50, # How many simulations per step
+    "budget": 150, # How many simulations per step
     "gamma": 0.90,
     "env_preprocessors": [],
 }
@@ -65,7 +65,7 @@ agent = MCTSAgent(env, agent_config)
 
 # print(env.unwrapped.config)  # Confirm config is set
 
-EPISODES_TO_GENERATE = 3
+EPISODES_TO_GENERATE = 100
 episodes_saved = 0
 
 attempt_counter = 0

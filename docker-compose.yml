@@ -1,0 +1,8 @@
+services:
+  worker:
+    build: .
+    image: highway-mcts-generator:latest
+    volumes:
+      - ./output:/app/output
+      - ./episode_gen.py:/app/episode_gen.py
+    restart: "no"
