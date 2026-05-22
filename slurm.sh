@@ -2,12 +2,12 @@
 #SBATCH --job-name=mcts_episode_gen
 #SBATCH --mail-type=BEGIN,END,FAIL
 #SBATCH --mail-user=khek.do@ufl.edu
-#SBATCH --nodes=1
-#SBATCH --ntasks=10          # 1 instance of the execution script
-#SBATCH --cpus-per-task=1   # ...allocated with 10 physical cores!
-#SBATCH --mem=20gb
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task=1
+#SBATCH --mem=4gb
+#SBATCH --array=1-20
 #SBATCH --time=12:00:00
-#SBATCH --output=multiprocess_%j.log # Standard output and error log
+#SBATCH --output=mcts_%A_%a.log
 echo "Job Start"
 date;hostname;pwd
 echo "---"
