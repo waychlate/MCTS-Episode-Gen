@@ -46,7 +46,7 @@ env = gym.make(
         "vehicles_count": 50,
         "lanes_count": 4,
 
-        "duration": 20,
+        "duration": 1,
         "simulation_frequency": 15,
         "policy_frequency": 5,
 
@@ -56,7 +56,7 @@ env = gym.make(
 )
 
 agent_config = {
-    "budget": 150, # How many simulations per step
+    "budget": 50, # How many simulations per step
     "gamma": 0.90,
     "env_preprocessors": [],
 }
@@ -76,10 +76,8 @@ while (episodes_saved < EPISODES_TO_GENERATE):
     seed = (current_ep * 73) + attempt_counter
     obs, info = env.reset(seed=seed)
 
+    start_time = time.perf_counter()
     print(f"Generating Episode {current_ep:04d} with Seed: {seed} | Attempt: {attempt_counter}")
-
-    # Increment the seed so that if an attempt fails it won't try on the same seed
-    seed += 1
 
     episode_data = []
     episode_images = []
@@ -151,10 +149,16 @@ while (episodes_saved < EPISODES_TO_GENERATE):
     if os.path.exists(placeholder_file):
         os.remove(placeholder_file)
 
-    print(f"Successfully saved episode_{current_ep:04d}!")
-
     attempt_counter = 0
     episodes_saved += 1
+
+    end_time = time.perf_counter()
+
+    duration_seconds = end_time - start_time 
+    minutes = int(duration_seconds // 60)
+    seconds = duration_seconds % 60
+ 
+    print(f"Successfully saved episode_{current_ep:04d} in {minutes:01d}m {seconds:.2f}s | {EPISODES_TO_GENERATE - episodes_saved} left to go.")
 
 env.close()
 print("Quota has been completed.")
