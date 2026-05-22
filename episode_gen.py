@@ -80,7 +80,7 @@ while (episodes_saved < EPISODES_TO_GENERATE):
         print("Max episodes has been met, unable to generate any more.")
         break
 
-    seed = (current_ep * 73) + attempt_counter
+    seed = (current_ep * 1000) + attempt_counter
     obs, info = env.reset(seed=seed)
 
     start_time = time.perf_counter()
