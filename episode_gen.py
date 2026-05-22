@@ -76,10 +76,9 @@ attempt_counter = 0
 
 while (episodes_saved < EPISODES_TO_GENERATE):
     current_ep = get_next_episode_index(OUPUT_DIRECTORY)
-    if (current_ep > MAX_EPISODES_TO_GENERATE) {
+    if (current_ep > MAX_EPISODES_TO_GENERATE):
         print("Max episodes has been met, unable to generate any more.")
         break
-    }
 
     seed = (current_ep * 73) + attempt_counter
     obs, info = env.reset(seed=seed)
@@ -137,7 +136,7 @@ while (episodes_saved < EPISODES_TO_GENERATE):
         step_entry["done"] = done
         episode_data.append(step_entry)
     
-    placeholder_file = os.path.join(directory, f"episode_{current_ep:04d}_placeholder") 
+    placeholder_file = os.path.join(OUTPUT_DIRECTORY, f"episode_{current_ep:04d}_placeholder") 
     
     if was_corrupted:
         print(f"There was a crash on episode {current_ep:04d}, redoing the episode with a different seed...")
@@ -147,11 +146,11 @@ while (episodes_saved < EPISODES_TO_GENERATE):
             os.remove(placeholder_file)
         continue
     
-    output_data_file = os.path.join(directory, f"episode_{current_ep:04d}_data.csv") 
+    output_data_file = os.path.join(OUTPUT_DIRECTORY, f"episode_{current_ep:04d}_data.csv") 
     df = pd.DataFrame(episode_data)
     df.to_csv(output_data_file, index=False)
 
-    output_visuals_file = os.path.join(directory, f"episode_{current_ep:04d}_visuals.npz")  
+    output_visuals_file = os.path.join(OUTPUT_DIRECTORY, f"episode_{current_ep:04d}_visuals.npz")  
     video_tensor = np.array(episode_images, dtype=np.uint8)
     np.savez_compressed(output_visuals_file, visuals=video_tensor)
 
