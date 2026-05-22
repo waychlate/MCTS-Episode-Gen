@@ -7,6 +7,12 @@ import numpy as np
 import pandas as pd
 from rl_agents.agents.tree_search.mcts import MCTSAgent
 
+OUPUT_DIRECTORY = "/blue/iruchkin/khek.do/"
+MAX_EPISODES_TO_GENERATE = 2000 # Total episodes in output/
+EPISODES_TO_GENERATE = 100 # Num of episodes for the script to generate
+ENV_DURATION = 20
+AGENT_BUDGET = 150
+
 def get_next_episode_index(directory="output/"):
     if not os.path.exists(directory):
         os.makedirs(directory)
@@ -46,7 +52,7 @@ env = gym.make(
         "vehicles_count": 50,
         "lanes_count": 4,
 
-        "duration": 1,
+        "duration": ENV_DURATION,
         "simulation_frequency": 15,
         "policy_frequency": 5,
 
@@ -56,7 +62,7 @@ env = gym.make(
 )
 
 agent_config = {
-    "budget": 50, # How many simulations per step
+    "budget": AGENT_BUDGET, # How many simulations per step
     "gamma": 0.90,
     "env_preprocessors": [],
 }
@@ -65,13 +71,15 @@ agent = MCTSAgent(env, agent_config)
 
 # print(env.unwrapped.config)  # Confirm config is set
 
-EPISODES_TO_GENERATE = 100
 episodes_saved = 0
-
 attempt_counter = 0
 
 while (episodes_saved < EPISODES_TO_GENERATE):
-    current_ep = get_next_episode_index()
+    current_ep = get_next_episode_index(OUPUT_DIRECTORY)
+    if (current_ep > MAX_EPISODES_TO_GENERATE) {
+        print("Max episodes has been met, unable to generate any more.")
+        break
+    }
 
     seed = (current_ep * 73) + attempt_counter
     obs, info = env.reset(seed=seed)
@@ -128,8 +136,8 @@ while (episodes_saved < EPISODES_TO_GENERATE):
         step_entry["reward"] = reward
         step_entry["done"] = done
         episode_data.append(step_entry)
-
-    placeholder_file = f"output/episode_{current_ep:04d}_placeholder"
+    
+    placeholder_file = os.path.join(directory, f"episode_{current_ep:04d}_placeholder") 
     
     if was_corrupted:
         print(f"There was a crash on episode {current_ep:04d}, redoing the episode with a different seed...")
@@ -139,11 +147,13 @@ while (episodes_saved < EPISODES_TO_GENERATE):
             os.remove(placeholder_file)
         continue
     
+    output_data_file = os.path.join(directory, f"episode_{current_ep:04d}_data.csv") 
     df = pd.DataFrame(episode_data)
-    df.to_csv(f"output/episode_{current_ep:04d}_data.csv", index=False)
+    df.to_csv(output_data_file, index=False)
 
+    output_visuals_file = os.path.join(directory, f"episode_{current_ep:04d}_visuals.npz")  
     video_tensor = np.array(episode_images, dtype=np.uint8)
-    np.savez_compressed(f"output/episode_{current_ep:04d}_visuals.npz", visuals=video_tensor)
+    np.savez_compressed(output_visuals_file, visuals=video_tensor)
 
     # Clean up placeholder file
     if os.path.exists(placeholder_file):
