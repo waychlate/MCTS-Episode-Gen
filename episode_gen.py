@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from rl_agents.agents.tree_search.mcts import MCTSAgent
 
-OUPUT_DIRECTORY = "/blue/iruchkin/khek.do/output"
+OUTPUT_DIRECTORY = "/blue/iruchkin/khek.do/output"
 MAX_EPISODES_TO_GENERATE = 2000 # Total episodes in output/
 EPISODES_TO_GENERATE = 100 # Num of episodes for the script to generate
 ENV_DURATION = 20
@@ -75,7 +75,7 @@ episodes_saved = 0
 attempt_counter = 0
 
 while (episodes_saved < EPISODES_TO_GENERATE):
-    current_ep = get_next_episode_index(OUPUT_DIRECTORY)
+    current_ep = get_next_episode_index(OUTPUT_DIRECTORY)
     if (current_ep > MAX_EPISODES_TO_GENERATE):
         print("Max episodes has been met, unable to generate any more.")
         break
