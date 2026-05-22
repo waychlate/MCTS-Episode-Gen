@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from rl_agents.agents.tree_search.mcts import MCTSAgent
 
-OUPUT_DIRECTORY = "/blue/iruchkin/khek.do/"
+OUPUT_DIRECTORY = "/blue/iruchkin/khek.do/output"
 MAX_EPISODES_TO_GENERATE = 2000 # Total episodes in output/
 EPISODES_TO_GENERATE = 100 # Num of episodes for the script to generate
 ENV_DURATION = 20

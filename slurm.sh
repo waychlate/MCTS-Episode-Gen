@@ -17,7 +17,8 @@ module load python/3.11
 
 cd /home/khek.do/MCTS-Episode-Gen/
 
-source python -m venv .venv
+python -m venv .venv
+
 source .venv/bin/activate
 pip install --upgrade pip
 pip install -r requirements.txt
