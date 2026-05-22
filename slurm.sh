@@ -14,7 +14,13 @@ echo "---"
 
 module purge
 module load python/3.11
+
+cd /home/khek.do/MCTS-Episode-Gen/
+
+source python -m venv .venv
 source .venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
 
 python -u episode_gen.py     # Python uses its own internal pooling to fill the 10 cores
 
