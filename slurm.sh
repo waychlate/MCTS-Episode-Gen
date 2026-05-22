@@ -7,7 +7,7 @@
 #SBATCH --mem=4gb
 #SBATCH --array=1-20
 #SBATCH --time=12:00:00
-#SBATCH --output=mcts_%A_%a.log
+#SBATCH --output=logs/mcts_%A_%a.log
 echo "Job Start"
 date;hostname;pwd
 echo "---"
@@ -17,6 +17,7 @@ module load python/3.11
 
 cd /home/khek.do/MCTS-Episode-Gen/
 
+mkdir logs
 python -m venv .venv
 
 source .venv/bin/activate

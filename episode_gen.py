@@ -76,8 +76,14 @@ attempt_counter = 0
 
 while (episodes_saved < EPISODES_TO_GENERATE):
     current_ep = get_next_episode_index(OUTPUT_DIRECTORY)
+
+    placeholder_file = os.path.join(OUTPUT_DIRECTORY, f"episode_{current_ep:04d}_placeholder")
     if (current_ep > MAX_EPISODES_TO_GENERATE):
         print("Max episodes has been met, unable to generate any more.")
+
+        if os.path.exists(placeholder_file):
+            os.remove(placeholder_file)
+                
         break
 
     seed = (current_ep * 1000) + attempt_counter
@@ -135,9 +141,7 @@ while (episodes_saved < EPISODES_TO_GENERATE):
         step_entry["reward"] = reward
         step_entry["done"] = done
         episode_data.append(step_entry)
-    
-    placeholder_file = os.path.join(OUTPUT_DIRECTORY, f"episode_{current_ep:04d}_placeholder") 
-    
+     
     if was_corrupted:
         print(f"There was a crash on episode {current_ep:04d}, redoing the episode with a different seed...")
         attempt_counter += 1
