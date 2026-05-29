@@ -17,7 +17,6 @@ module load python/3.11
 
 cd /home/khek.do/MCTS-Episode-Gen/
 
-mkdir logs
 python -m venv .venv
 
 source .venv/bin/activate
