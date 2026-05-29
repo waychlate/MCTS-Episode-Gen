@@ -3,8 +3,10 @@ import torch
 import numpy as np
 import torchvision.transforms.functional as TF
 
-input_dir = Path('output/train')
-output_dir = Path('output/preprocessed_train')
+input_dir = Path('/blue/iruchkin/khek.do/sorted_output/train')
+# input_dir = Path('/blue/iruchkin/khek.do/sorted_output/test')
+output_dir = Path('processed_output/processed_visual_train')
+# output_dir = Path('processed_output/processed_visual_test')
 
 output_dir.mkdir(parents=True, exist_ok=True)
 
