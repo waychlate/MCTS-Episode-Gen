@@ -21,7 +21,7 @@ for idx, visual_path in enumerate(visual_files):
 
     print(f"[{idx+1}/{total_files}] Preprocessing {filename}")
 
-    # 1. Load raw visuals
+    # Load raw visuals
     raw_data = np.load(visual_path)
     visual_array = raw_data['visuals']
 
