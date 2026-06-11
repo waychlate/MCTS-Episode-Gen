@@ -10,8 +10,8 @@ from rl_agents.agents.tree_search.mcts import MCTSAgent
 OUTPUT_DIRECTORY = "/blue/iruchkin/khek.do/output_ttc"
 MAX_EPISODES_TO_GENERATE = 2000 # Total episodes in output/
 EPISODES_TO_GENERATE = 100 # Num of episodes for the script to generate
-ENV_DURATION = 2 # Training: 20
-AGENT_BUDGET = 15 # Training: 150
+ENV_DURATION = 20 # Training: 20
+AGENT_BUDGET = 150 # Training: 150
 
 def get_next_episode_index(directory="output/"):
     if not os.path.exists(directory):
