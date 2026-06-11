@@ -7,11 +7,11 @@ import numpy as np
 import pandas as pd
 from rl_agents.agents.tree_search.mcts import MCTSAgent
 
-OUTPUT_DIRECTORY = "/blue/iruchkin/khek.do/output"
+OUTPUT_DIRECTORY = "/blue/iruchkin/khek.do/output_ttc"
 MAX_EPISODES_TO_GENERATE = 2000 # Total episodes in output/
 EPISODES_TO_GENERATE = 100 # Num of episodes for the script to generate
-ENV_DURATION = 20
-AGENT_BUDGET = 150
+ENV_DURATION = 2 # Training: 20
+AGENT_BUDGET = 15 # Training: 150
 
 def get_next_episode_index(directory="output/"):
     if not os.path.exists(directory):
@@ -38,9 +38,33 @@ def get_next_episode_index(directory="output/"):
         time.sleep(0.1) 
         return get_next_episode_index(directory)
 
+def get_min_ttc(obs):
+    # Collapse the longitudinal positions (X-axis) to get a (3, 10) matrix
+    # Captures the worst-case risk for each lane over time
+    lane_timelines = np.max(obs, axis=1) 
+
+    lane_ttcs = []
+
+    # Find the first min (earliest time step with risk) for each lane
+    for lane_idx in range(lane_timelines.shape[0]):
+        timeline = lane_timelines[lane_idx]
+        
+        # Find indices where risk is detected
+        risky_steps = np.where(timeline > 0)[0]
+        
+        if len(risky_steps) > 0:
+            # Time steps are 0-indexed, so add 1 to get actual seconds (1 to 10)
+            earliest_crash_time = risky_steps[0] + 1
+            lane_ttcs.append(earliest_crash_time)
+        else:
+            # No risk detected in this lane over the entire horizon
+            lane_ttcs.append(10.0)
+
+    # 3. Take the second min across all lanes
+    return min(lane_ttcs)
 
 env = gym.make(
-    "highway-v0",
+    "highway-fast-v0",
     config={
         # Reward weights
         "collision_reward": -1.0,     # default: -1.0
@@ -57,6 +81,11 @@ env = gym.make(
         "policy_frequency": 5,
 
         "normalize_reward": False,
+
+        "observation": {
+            "type": "TimeToCollision",
+            "horizon": 10,
+        },
     },
     render_mode="rgb_array"
 )
@@ -103,45 +132,36 @@ while (episodes_saved < EPISODES_TO_GENERATE):
     while not (done or truncated):
         # Agent planning
         action = agent.act(obs)
+
+        current_ttc = get_min_ttc(obs)
         
         ego = env.unwrapped.vehicle
         step_entry = {
             "seed": seed,
             "episode": episode,
             "step": step,
-            "x": ego.position[0],
-            "y": ego.position[1],
-            "vx": ego.velocity[0],
-            "vy": ego.velocity[1],
-            "cos_h": ego.direction[0],
-            "sin_h": ego.direction[1],
-            "cos_d": ego.destination_direction[0],
-            "sin_d": ego.destination_direction[1],
-            "long_off": ego.lane_offset[0],
-            "lat_off": ego.lane_offset[1],
-            "ang_off": ego.lane_offset[2],
             "lane_id": ego.lane_index[2],
             "action": action,
             "target_speed": ego.target_speed,
-            "crashed": int(ego.crashed)
+            "obs_ttc": current_ttc,
         }
 
+        step_entry.update(ego.to_dict())
         episode_images.append(env.render())
 
         obs, reward, done, truncated, info = env.step(action)
         step += 1
 
+        step_entry["reward"] = reward
+        step_entry["done"] = done
+        step_entry["crashed"] = int(ego.crashed)
+
+        episode_data.append(step_entry)
+
         if ego.crashed:
             was_corrupted = True
             break
-
-        # To observe each step uncomment line below
-        # print(f"action={action}, reward={reward}, lane={ego.lane_index}, speed={ego.speed:.1f}, crashed={ego.crashed}")
-
-        step_entry["reward"] = reward
-        step_entry["done"] = done
-        episode_data.append(step_entry)
-     
+ 
     if was_corrupted:
         print(f"There was a crash on episode {current_ep:04d}, redoing the episode with a different seed...")
         attempt_counter += 1
