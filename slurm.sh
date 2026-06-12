@@ -6,7 +6,7 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --mem=4gb
 #SBATCH --array=1-20
-#SBATCH --time=12:00:00
+#SBATCH --time=14:00:00
 #SBATCH --output=logs/mcts_%A_%a.log
 echo "Job Start"
 date;hostname;pwd
