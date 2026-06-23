@@ -73,7 +73,7 @@ env = gym.make(
         "target_speeds": [20, 30], # default: [20, 30]
         "lane_change_reward": -0.1,
 
-        "vehicles_count": 50,
+        "vehicles_count": 20,
         "lanes_count": 4,
 
         "duration": ENV_DURATION,
