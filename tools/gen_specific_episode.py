@@ -113,7 +113,7 @@ while (episodes_saved < 1):
                 
         break
 
-    seed = (current_ep * 1000) + attempt_counter
+    seed = 389000
     obs, info = env.reset(seed=seed)
 
     start_time = time.perf_counter()
