@@ -7,9 +7,10 @@ import numpy as np
 import pandas as pd
 from rl_agents.agents.tree_search.mcts import MCTSAgent
 
-OUTPUT_DIRECTORY = "/blue/iruchkin/khek.do/episode_0389"
+OUTPUT_DIRECTORY = "/home/doa/projects/kinemamba/MCTS-Episode-Gen/output"
 ENV_DURATION = 20 # Training: 20
 AGENT_BUDGET = 150 # Training: 150
+
 
 def get_next_episode_index(directory="output/"):
     if not os.path.exists(directory):
@@ -37,9 +38,9 @@ def get_next_episode_index(directory="output/"):
         return get_next_episode_index(directory)
 
 def get_min_ttc(obs):
-    # Collapse the longitudinal positions (X-axis) to get a (3, 10) matrix
+    # Collapse the speed axis (axis 0) to get a (3, 50) matrix (lanes, time)
     # Captures the worst-case risk for each lane over time
-    lane_timelines = np.max(obs, axis=1) 
+    lane_timelines = np.max(obs, axis=0) 
 
     lane_ttcs = []
 
@@ -51,15 +52,17 @@ def get_min_ttc(obs):
         risky_steps = np.where(timeline > 0)[0]
         
         if len(risky_steps) > 0:
-            # Time steps are 0-indexed, so add 1 to get actual seconds (1 to 10)
-            earliest_crash_time = risky_steps[0] + 1
+            # The time dimension has size 50 (horizon 10 * policy_frequency 5)
+            # Convert 0-indexed step to seconds by multiplying by 0.2s per step
+            earliest_crash_time = (risky_steps[0] + 1) * 0.2
             lane_ttcs.append(earliest_crash_time)
         else:
             # No risk detected in this lane over the entire horizon
             lane_ttcs.append(10.0)
 
-    # 3. Take the second min across all lanes
+    # Take the min across all lanes
     return min(lane_ttcs)
+
 
 env = gym.make(
     "highway-fast-v0",
@@ -132,6 +135,7 @@ while (episodes_saved < 1):
         # Agent planning
         action = agent.act(obs)
  
+        current_ttc = get_min_ttc(obs)
         ego = env.unwrapped.vehicle
         step_entry = {
             "seed": seed,
@@ -140,6 +144,7 @@ while (episodes_saved < 1):
             "lane_id": ego.lane_index[2],
             "action": action,
             "target_speed": ego.target_speed,
+            "obs_ttc": current_ttc,
         }
 
         step_entry.update(ego.to_dict())
