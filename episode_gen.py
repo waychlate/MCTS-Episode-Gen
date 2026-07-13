@@ -7,7 +7,7 @@ import numpy as np
 import pandas as pd
 from rl_agents.agents.tree_search.mcts import MCTSAgent
 
-OUTPUT_DIRECTORY = "/blue/iruchkin/khek.do/output_ttc"
+OUTPUT_DIRECTORY = "/blue/iruchkin/khek.do/ttc_padding_fix"
 MAX_EPISODES_TO_GENERATE = 2000 # Total episodes in output/
 EPISODES_TO_GENERATE = 100 # Num of episodes for the script to generate
 ENV_DURATION = 20 # Training: 20
@@ -38,10 +38,19 @@ def get_next_episode_index(directory="output/"):
         time.sleep(0.1) 
         return get_next_episode_index(directory)
 
-def get_min_ttc(obs):
+def get_min_ttc(obs, lane_id, num_lanes=4):
+    # Copy the observation to avoid modifying the original state
+    obs_clean = obs.copy()
+
+    # Zero out the out-of-bounds lanes if the vehicle is on the road boundary
+    if lane_id == 0:
+        obs_clean[:, 0, :] = 0  # Zero out left relative lane (out of bounds)
+    elif lane_id == num_lanes - 1:
+        obs_clean[:, 2, :] = 0  # Zero out right relative lane (out of bounds)
+
     # Collapse the speed axis (axis 0) to get a (3, 50) matrix (lanes, time)
     # Captures the worst-case risk for each lane over time
-    lane_timelines = np.max(obs, axis=0) 
+    lane_timelines = np.max(obs_clean, axis=0) 
 
     lane_ttcs = []
 
@@ -63,6 +72,7 @@ def get_min_ttc(obs):
 
     # Take the min across all lanes
     return min(lane_ttcs)
+
 
 
 env = gym.make(
@@ -135,9 +145,9 @@ while (episodes_saved < EPISODES_TO_GENERATE):
         # Agent planning
         action = agent.act(obs)
 
-        current_ttc = get_min_ttc(obs)
-        
         ego = env.unwrapped.vehicle
+        current_ttc = get_min_ttc(obs, ego.lane_index[2])
+
         step_entry = {
             "seed": seed,
             "episode": episode,

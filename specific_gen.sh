@@ -23,7 +23,7 @@ source .venv/bin/activate
 pip install --upgrade pip
 pip install -r requirements.txt
 
-python -u ./tools/gen_specific_episode.py     # Python uses its own internal pooling to fill the 10 cores
+python -u ./gen_specific_episode.py     # Python uses its own internal pooling to fill the 10 cores
 
 echo "Job End"
 date
