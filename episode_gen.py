@@ -10,7 +10,7 @@ from rl_agents.agents.tree_search.mcts import MCTSAgent
 OUTPUT_DIRECTORY = "/blue/iruchkin/khek.do/ttc_padding_fix"
 MAX_EPISODES_TO_GENERATE = 2000 # Total episodes in output/
 EPISODES_TO_GENERATE = 100 # Num of episodes for the script to generate
-ENV_DURATION = 20 # Training: 20
+ENV_DURATION = 200 # Training: 20
 AGENT_BUDGET = 150 # Training: 150
 
 def get_next_episode_index(directory="output/"):

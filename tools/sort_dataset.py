@@ -2,8 +2,8 @@ from pathlib import Path
 import random
 
 # 1. Define your paths
-SOURCE_DATA_DIR = Path("/blue/iruchkin/khek.do/output_ttc")
-DESTINATION_DATA_DIR = Path("/blue/iruchkin/khek.do/output_ttc_sorted")
+SOURCE_DATA_DIR = Path("/home/doa/projects/kinemamba/MCTS-Episode-Gen/output/ttc_padding_fix")
+DESTINATION_DATA_DIR = Path("/home/doa/projects/kinemamba/MCTS-Episode-Gen/output/sorted_ttc_padding_fix")
 
 TRAIN_DIR = DESTINATION_DATA_DIR / "train"
 TEST_DIR = DESTINATION_DATA_DIR / "test"
