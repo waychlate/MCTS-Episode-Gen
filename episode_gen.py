@@ -48,9 +48,8 @@ def get_min_ttc(obs, lane_id, num_lanes=4):
     elif lane_id == num_lanes - 1:
         obs_clean[:, 2, :] = 0  # Zero out right relative lane (out of bounds)
 
-    # Collapse the speed axis (axis 0) to get a (3, 50) matrix (lanes, time)
-    # Captures the worst-case risk for each lane over time
-    lane_timelines = np.max(obs_clean, axis=0) 
+    # Select ONLY index 1 instead of worst-case max across all speeds
+    lane_timelines = obs_clean[1, :, :] 
 
     lane_ttcs = []
 
@@ -62,16 +61,17 @@ def get_min_ttc(obs, lane_id, num_lanes=4):
         risky_steps = np.where(timeline > 0)[0]
         
         if len(risky_steps) > 0:
-            # The time dimension has size 50 (horizon 10 * policy_frequency 5)
+            # The time dimension has size 75 (horizon 15 * policy_frequency 5)
             # Convert 0-indexed step to seconds by multiplying by 0.2s per step
             earliest_crash_time = (risky_steps[0] + 1) * 0.2
             lane_ttcs.append(earliest_crash_time)
         else:
             # No risk detected in this lane over the entire horizon
-            lane_ttcs.append(10.0)
+            lane_ttcs.append(15.0)
 
     # Take the min across all lanes
     return min(lane_ttcs)
+
 
 
 
@@ -82,10 +82,10 @@ env = gym.make(
         "collision_reward": -1.0,     # default: -1.0
         "high_speed_reward": 0.4,      # default: 0.4
         "right_lane_reward": 0.1,     # default: 0.1
-        "target_speeds": [20, 30], # default: [20, 30]
+        "target_speeds": [15, 22, 30], # increased speed variety
         "lane_change_reward": -0.1,
 
-        "vehicles_count": 20,
+        "vehicles_count": 30,          # increased density from 20 to 30
         "lanes_count": 4,
 
         "duration": ENV_DURATION,
@@ -96,8 +96,9 @@ env = gym.make(
 
         "observation": {
             "type": "TimeToCollision",
-            "horizon": 10,
+            "horizon": 15,             # increased horizon from 10 to 15
         },
+
     },
     render_mode="rgb_array"
 )
