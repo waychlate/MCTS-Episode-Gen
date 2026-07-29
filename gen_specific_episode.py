@@ -128,78 +128,78 @@ while (episodes_saved < 1):
                 
         break
 
-    seed = 389000
-    obs, info = env.reset(seed=seed)
+    success = False
+    try:
+        seed = 389000
+        obs, info = env.reset(seed=seed)
 
-    start_time = time.perf_counter()
-    print(f"Generating Episode {current_ep:04d} with Seed: {seed} | Attempt: {attempt_counter}")
+        start_time = time.perf_counter()
+        print(f"Generating Episode {current_ep:04d} with Seed: {seed} | Attempt: {attempt_counter}")
 
-    episode_data = []
-    episode_images = []
-    episode_obs_raw = []
-    done = truncated = False
-    was_corrupted = False # Track if attempt failed (ex. car crashed)
+        episode_data = []
+        episode_images = []
+        episode_obs_raw = []
+        done = truncated = False
+        was_corrupted = False # Track if attempt failed (ex. car crashed)
 
-    episode = current_ep
-    step = 0
+        episode = current_ep
+        step = 0
 
-    while not (done or truncated):
-        # Agent planning
-        action = agent.act(obs)
- 
-        ego = env.unwrapped.vehicle
-        current_ttc = get_min_ttc(obs, ego.lane_index[2])
+        while not (done or truncated):
+            # Agent planning
+            action = agent.act(obs)
+     
+            ego = env.unwrapped.vehicle
+            current_ttc = get_min_ttc(obs, ego.lane_index[2])
 
-        step_entry = {
-            "seed": seed,
-            "episode": episode,
-            "step": step,
-            "lane_id": ego.lane_index[2],
-            "action": action,
-            "target_speed": ego.target_speed,
-            "obs_ttc": current_ttc,
-        }
+            step_entry = {
+                "seed": seed,
+                "episode": episode,
+                "step": step,
+                "lane_id": ego.lane_index[2],
+                "action": action,
+                "target_speed": ego.target_speed,
+                "obs_ttc": current_ttc,
+            }
 
-        step_entry.update(ego.to_dict())
-        episode_images.append(env.render())
-        episode_obs_raw.append(obs)
+            step_entry.update(ego.to_dict())
+            episode_images.append(env.render())
+            episode_obs_raw.append(obs)
 
-        obs, reward, done, truncated, info = env.step(action)
-        step += 1
+            obs, reward, done, truncated, info = env.step(action)
+            step += 1
 
-        step_entry["reward"] = reward
-        step_entry["done"] = done
-        step_entry["crashed"] = int(ego.crashed)
+            step_entry["reward"] = reward
+            step_entry["done"] = done
+            step_entry["crashed"] = int(ego.crashed)
 
-        episode_data.append(step_entry)
+            episode_data.append(step_entry)
 
-        if ego.crashed:
-            was_corrupted = True
-            break
- 
-    if was_corrupted:
-        print(f"There was a crash on episode {current_ep:04d}, redoing the episode with a different seed...")
-        attempt_counter += 1
+            if ego.crashed:
+                was_corrupted = True
+                break
 
+        if was_corrupted:
+            print(f"There was a crash on episode {current_ep:04d}, redoing the episode with a different seed...")
+            attempt_counter += 1
+            continue
+
+        output_data_file = os.path.join(OUTPUT_DIRECTORY, f"episode_{current_ep:04d}_data.csv") 
+        df = pd.DataFrame(episode_data)
+        df.to_csv(output_data_file, index=False)
+
+        output_visuals_file = os.path.join(OUTPUT_DIRECTORY, f"episode_{current_ep:04d}_visuals.npz")  
+        video_tensor = np.array(episode_images, dtype=np.uint8)
+        obs_tensor = np.array(episode_obs_raw, dtype=np.float32)
+        np.savez_compressed(output_visuals_file, visuals=video_tensor, obs_ttc_raw=obs_tensor)
+
+        success = True
+        attempt_counter = 0
+        episodes_saved += 1
+    finally:
         if os.path.exists(placeholder_file):
             os.remove(placeholder_file)
-        continue
-    
-    output_data_file = os.path.join(OUTPUT_DIRECTORY, f"episode_{current_ep:04d}_data.csv") 
-    df = pd.DataFrame(episode_data)
-    df.to_csv(output_data_file, index=False)
 
-    output_visuals_file = os.path.join(OUTPUT_DIRECTORY, f"episode_{current_ep:04d}_visuals.npz")  
-    video_tensor = np.array(episode_images, dtype=np.uint8)
-    obs_tensor = np.array(episode_obs_raw, dtype=np.float32)
-    np.savez_compressed(output_visuals_file, visuals=video_tensor, obs_ttc_raw=obs_tensor)
-
-    # Clean up placeholder file
-    if os.path.exists(placeholder_file):
-        os.remove(placeholder_file)
-
-    attempt_counter = 0
-    episodes_saved += 1
 
     end_time = time.perf_counter()
 

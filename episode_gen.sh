@@ -4,7 +4,7 @@
 #SBATCH --mail-user=khek.do@ufl.edu
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=4gb
+#SBATCH --mem=16gb
 #SBATCH --array=1-40
 #SBATCH --time=20:00:00
 #SBATCH --output=logs/mcts_%A_%a.log
