@@ -1,11 +1,13 @@
 import os
 import re
 import time
+import gc
 import gymnasium as gym
 import highway_env
 import numpy as np
 import pandas as pd
 from rl_agents.agents.tree_search.mcts import MCTSAgent
+
 
 OUTPUT_DIRECTORY = "/blue/iruchkin/khek.do/inc_ttc_variation"
 MAX_EPISODES_TO_GENERATE = 2000 # Total episodes in output/
@@ -137,7 +139,7 @@ while (episodes_saved < EPISODES_TO_GENERATE):
         print(f"Generating Episode {current_ep:04d} with Seed: {seed} | Attempt: {attempt_counter}")
 
         episode_data = []
-        episode_images = []
+        video_tensor = None
         done = truncated = False
         was_corrupted = False # Track if attempt failed (ex. car crashed)
 
@@ -162,7 +164,13 @@ while (episodes_saved < EPISODES_TO_GENERATE):
             }
 
             step_entry.update(ego.to_dict())
-            episode_images.append(env.render())
+
+            # Render frame into pre-allocated video array
+            frame = env.render()
+            if video_tensor is None:
+                max_steps = (ENV_DURATION * 5) + 20
+                video_tensor = np.zeros((max_steps, frame.shape[0], frame.shape[1], frame.shape[2]), dtype=np.uint8)
+            video_tensor[step] = frame
 
             obs, reward, done, truncated, info = env.step(action)
             step += 1
@@ -187,8 +195,7 @@ while (episodes_saved < EPISODES_TO_GENERATE):
         df.to_csv(output_data_file, index=False)
 
         output_visuals_file = os.path.join(OUTPUT_DIRECTORY, f"episode_{current_ep:04d}_visuals.npz")  
-        video_tensor = np.array(episode_images, dtype=np.uint8)
-        np.savez_compressed(output_visuals_file, visuals=video_tensor)
+        np.savez_compressed(output_visuals_file, visuals=video_tensor[:step])
 
         success = True
         attempt_counter = 0
@@ -196,6 +203,12 @@ while (episodes_saved < EPISODES_TO_GENERATE):
     finally:
         if os.path.exists(placeholder_file):
             os.remove(placeholder_file)
+        if 'video_tensor' in locals():
+            del video_tensor
+        if 'episode_data' in locals():
+            del episode_data
+        gc.collect()
+
 
 
     end_time = time.perf_counter()
