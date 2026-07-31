@@ -111,7 +111,6 @@ agent_config = {
     "env_preprocessors": [],
 }
 
-agent = MCTSAgent(env, agent_config)
 
 # print(env.unwrapped.config)  # Confirm config is set
 
@@ -132,8 +131,10 @@ while (episodes_saved < 1):
 
     success = False
     try:
+        agent = MCTSAgent(env, agent_config)
         seed = 389000
         obs, info = env.reset(seed=seed)
+
 
         start_time = time.perf_counter()
         print(f"Generating Episode {current_ep:04d} with Seed: {seed} | Attempt: {attempt_counter}")
@@ -206,11 +207,14 @@ while (episodes_saved < 1):
     finally:
         if os.path.exists(placeholder_file):
             os.remove(placeholder_file)
+        if 'agent' in locals():
+            del agent
         if 'video_tensor' in locals():
             del video_tensor
         if 'episode_data' in locals():
             del episode_data
         gc.collect()
+
 
 
 

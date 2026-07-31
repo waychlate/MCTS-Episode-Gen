@@ -4,8 +4,8 @@
 #SBATCH --mail-user=khek.do@ufl.edu
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=4gb
-#SBATCH --array=1-40
+#SBATCH --mem=2gb
+#SBATCH --array=1-80
 #SBATCH --time=20:00:00
 #SBATCH --output=logs/mcts_%A_%a.log
 echo "Job Start"
