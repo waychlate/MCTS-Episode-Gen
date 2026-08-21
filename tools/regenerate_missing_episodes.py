@@ -8,7 +8,7 @@ import pandas as pd
 from rl_agents.agents.tree_search.mcts import MCTSAgent
 
 # Dataset base directory (can be overridden via environment variable)
-DATASET_DIR = os.environ.get("DATASET_DIR", "/blue/iruchkin/khek.do/output/dataset_episodes_1000")
+DATASET_DIR = os.environ.get("DATASET_DIR", "/blue/iruchkin/khek.do/dataset_episodes_1000")
 ENV_DURATION = 200  # 1000 steps at 5 Hz
 AGENT_BUDGET = 150
 
